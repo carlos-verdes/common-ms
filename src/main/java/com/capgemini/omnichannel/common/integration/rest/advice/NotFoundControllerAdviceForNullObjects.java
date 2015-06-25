@@ -1,4 +1,4 @@
-package com.capgemini.omnichannel.omnisession.integration.rest.advice;
+package com.capgemini.omnichannel.common.integration.rest.advice;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpMethod;

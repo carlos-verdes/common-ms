@@ -1,4 +1,4 @@
-package com.capgemini.omnichannel.omnisession.integration.rest;
+package com.capgemini.omnichannel.common.integration.rest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.capgemini.omnichannel.omnisession.integration.rest.dto.BaseRestDTO;
-import com.capgemini.omnichannel.omnisession.model.service.ResourcePersistenceService;
+import com.capgemini.omnichannel.common.integration.rest.dto.BaseRestDTO;
+import com.capgemini.omnichannel.common.model.service.ResourcePersistenceService;
 
 /**
  * Base class for rest resources with the next convention:
@@ -29,19 +29,19 @@ public abstract class BaseResourceRestController<Resource,ResourceID> {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
-	abstract ResourcePersistenceService<Resource,ResourceID> getResourcePersistenceService();
+	abstract protected ResourcePersistenceService<Resource,ResourceID> getResourcePersistenceService();
 	
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
-	@ResponseBody()
-	public BaseRestDTO<Resource> getEntity(@PathVariable ResourceID id) {
-		logger.debug("GET entity {} with id {}", getResourcePersistenceService().getResourceClass(), id);
+	public @ResponseBody BaseRestDTO<Resource> getEntity(@PathVariable ResourceID id) {
+		Class<? extends Resource> clazz = getResourcePersistenceService().getResourceClass();
+		logger.debug("GET resource {} with id {}", clazz, id);
 
 		BaseRestDTO<Resource> result = null;
-		Resource entity = getResourcePersistenceService().getResourceById(id);
-		if (entity != null) {
-			logger.debug("entity found: {}", entity);
+		Resource resource = getResourcePersistenceService().getResourceById(id);
+		if (resource != null) {
+			logger.debug("resource found: {}", resource);
 
-			result = createRestDTO(entity);
+			result = createRestDTO(resource);
 		}
 
 		logger.debug("result: {}", result);

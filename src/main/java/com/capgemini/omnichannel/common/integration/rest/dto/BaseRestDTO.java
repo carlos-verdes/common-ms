@@ -1,4 +1,4 @@
-package com.capgemini.omnichannel.omnisession.integration.rest.dto;
+package com.capgemini.omnichannel.common.integration.rest.dto;
 
 import java.io.Serializable;
 
@@ -12,13 +12,16 @@ public class BaseRestDTO<T> extends ResourceSupport implements Serializable{
 	public BaseRestDTO() {
 		super();
 	}
-
+	
 	public BaseRestDTO(T data) {
 		this();
 		this.data = data;
 	}
 
-
+	@Override
+	public String toString() {
+		return "BaseRestDTO [data=" + data + "]";
+	}
 
 	public T getData() {
 		return data;

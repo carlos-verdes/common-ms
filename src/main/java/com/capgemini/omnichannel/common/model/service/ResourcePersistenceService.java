@@ -1,6 +1,6 @@
-package com.capgemini.omnichannel.omnisession.model.service;
+package com.capgemini.omnichannel.common.model.service;
 
-import com.capgemini.omnichannel.omnisession.integration.rest.BaseResourceRestController;
+import com.capgemini.omnichannel.common.integration.rest.BaseResourceRestController;
 
 /**
  * <p>Interface used by {@link BaseResourceRestController} to retrieve/store resources.
