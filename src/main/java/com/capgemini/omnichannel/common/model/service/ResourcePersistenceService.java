@@ -7,16 +7,14 @@ import com.capgemini.omnichannel.common.integration.rest.BaseResourceRestControl
  * @author cverdesm
  *
  * @param <Resource>
- * @param <ResourceID>
+ * @param <String>
  */
-public interface ResourcePersistenceService<Resource, ResourceID> {
+public interface ResourcePersistenceService<Resource> {
 
-	Class<? extends Resource> getResourceClass();
+	Resource getResourceById(String id);
 
-	Resource getResourceById(ResourceID id);
+	<S extends Resource> S updateResource(String id, S value);
 
-	<S extends Resource> S updateResource(ResourceID id, S value);
-
-	<S extends Resource> S insertResource(ResourceID id, S value);
+	<S extends Resource> S insertResource(String id, S value);
 
 }
