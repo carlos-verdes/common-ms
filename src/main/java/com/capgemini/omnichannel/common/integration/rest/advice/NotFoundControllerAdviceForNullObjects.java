@@ -10,6 +10,15 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
+/**
+ * <p>
+ * Advice to return 404 when a result is null.
+ * <p>
+ * This doesn't apply for Iterable objects which will use another advice.
+ * 
+ * @author cverdes
+ *
+ */
 @ControllerAdvice
 public class NotFoundControllerAdviceForNullObjects implements ResponseBodyAdvice<Object> {
 
@@ -20,7 +29,7 @@ public class NotFoundControllerAdviceForNullObjects implements ResponseBodyAdvic
 
 		// returns 404 for get methods and null results
 		if (request.getMethod().equals(HttpMethod.GET) && body == null) {
-			
+
 			response.setStatusCode(HttpStatus.NOT_FOUND);
 		}
 
@@ -30,7 +39,9 @@ public class NotFoundControllerAdviceForNullObjects implements ResponseBodyAdvic
 	@Override
 	public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
 
-		return true;
+		boolean isIterable = returnType.getClass().isAssignableFrom(Iterable.class);
+
+		return !isIterable;
 	}
 
 }
