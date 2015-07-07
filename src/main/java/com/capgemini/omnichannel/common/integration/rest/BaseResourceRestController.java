@@ -4,6 +4,8 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +47,26 @@ public abstract class BaseResourceRestController<Resource> {
 
 	abstract protected ResourcePersistenceService<Resource> getResourcePersistenceService();
 
+	@RequestMapping(method = RequestMethod.GET)
+	public @ResponseBody BaseRestDTO<List<BaseRestDTO<Resource>>> getResources(Principal principal) {
+		logger.debug("GET / ... Controller:{}", this.getClass());
+
+		BaseRestDTO<List<BaseRestDTO<Resource>>> result = null;
+		List<Resource> resources = getResourcePersistenceService().getResources(principal);
+		if (resources != null && !resources.isEmpty()) {
+			logger.debug("resources found: {}", resources);
+
+			result = createRestDTO(resources, principal);
+		}
+
+		logger.debug("result: {}", result);
+
+		return result;
+	}
+
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody BaseRestDTO<Resource> getResource(@PathVariable String id, Principal principal) {
+		
 		logger.debug("GET /{} .. Controller:{}", id, this.getClass());
 
 		BaseRestDTO<Resource> result = null;
@@ -54,7 +74,7 @@ public abstract class BaseResourceRestController<Resource> {
 		if (resource != null) {
 			logger.debug("resource found: {}", resource);
 
-			result = createRestDTO(id, resource, principal);
+			result = createRestDTO(resource, principal);
 		}
 
 		logger.debug("result: {}", result);
@@ -69,7 +89,7 @@ public abstract class BaseResourceRestController<Resource> {
 		BaseRestDTO<Resource> result = null;
 		if (id != null && value != null) {
 			Resource resource = getResourcePersistenceService().updateResource(id, value, principal);
-			result = createRestDTO(id, resource, principal);
+			result = createRestDTO(resource, principal);
 		}
 
 		return result;
@@ -83,28 +103,58 @@ public abstract class BaseResourceRestController<Resource> {
 		BaseRestDTO<Resource> result = null;
 		if (id != null && value != null) {
 			Resource resource = getResourcePersistenceService().insertResource(id, value, principal);
-			result = createRestDTO(id, resource, principal);
+			result = createRestDTO(resource, principal);
 		}
 
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
-	private BaseRestDTO<Resource> createRestDTO(String id, Resource resource, Principal principal) {
+	private BaseRestDTO<List<BaseRestDTO<Resource>>> createRestDTO(Iterable<Resource> resources, Principal principal) {
+		BaseRestDTO<List<BaseRestDTO<Resource>>> result = new BaseRestDTO<List<BaseRestDTO<Resource>>>(new ArrayList<BaseRestDTO<Resource>>());
+		List<BaseRestDTO<Resource>> data = result.getData();
+
+		// generate dtos
+		for (Resource resource : resources) {
+			BaseRestDTO<Resource> dto = createRestDTO(resource, principal);
+
+			data.add(dto);
+
+		}
+
+		// add general links
+		addLinksToResources(result);
+
+		return result;
+
+	}
+
+	private BaseRestDTO<Resource> createRestDTO(Resource resource, Principal principal) {
+
 		BaseRestDTO<Resource> result;
 		result = new BaseRestDTO<Resource>(resource);
 
 		// add self link
+		addSelfAndOtherLinksToResource(resource, principal, result);
+
+		return result;
+	}
+
+	protected void addSelfAndOtherLinksToResource(Resource resource, Principal principal, BaseRestDTO<Resource> result) {
+		@SuppressWarnings("unchecked")
 		BaseResourceRestController<Resource> controller = methodOn(this.getClass());
+		String id = this.getResourcePersistenceService().getResourceId(resource);
 		BaseRestDTO<Resource> method = controller.getResource(id, principal);
 		ControllerLinkBuilder linkBuilder = linkTo(method);
 		result.add(linkBuilder.withSelfRel());
 		// add external links (from controller implementation)
-		addLinksToResource(resource);
-		return result;
+		addLinksToResource(result);
 	}
 
-	protected void addLinksToResource(Resource resource) {
+	protected void addLinksToResource(BaseRestDTO<Resource> result) {
+
+	}
+
+	protected void addLinksToResources(BaseRestDTO<List<BaseRestDTO<Resource>>> results) {
 
 	}
 

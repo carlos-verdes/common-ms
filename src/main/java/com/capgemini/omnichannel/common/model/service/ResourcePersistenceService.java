@@ -1,6 +1,7 @@
 package com.capgemini.omnichannel.common.model.service;
 
 import java.security.Principal;
+import java.util.List;
 
 import com.capgemini.omnichannel.common.integration.rest.BaseResourceRestController;
 
@@ -14,6 +15,10 @@ import com.capgemini.omnichannel.common.integration.rest.BaseResourceRestControl
  * @param <String>
  */
 public interface ResourcePersistenceService<Resource> {
+
+	String getResourceId(Resource resource);
+
+	List<Resource> getResources(Principal principal);
 
 	Resource getResourceById(String id, Principal principal);
 
