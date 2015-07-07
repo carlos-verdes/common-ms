@@ -1,5 +1,10 @@
 package com.capgemini.omnichannel.common.integration.rest;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+import java.security.Principal;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -11,8 +16,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.capgemini.omnichannel.common.integration.rest.dto.BaseRestDTO;
 import com.capgemini.omnichannel.common.model.service.ResourcePersistenceService;
-
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
 /**
  * Base class for rest resources with the next convention:
@@ -43,15 +46,15 @@ public abstract class BaseResourceRestController<Resource> {
 	abstract protected ResourcePersistenceService<Resource> getResourcePersistenceService();
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
-	public @ResponseBody BaseRestDTO<Resource> getResource(@PathVariable String id) {
+	public @ResponseBody BaseRestDTO<Resource> getResource(@PathVariable String id, Principal principal) {
 		logger.debug("GET /{} .. Controller:{}", id, this.getClass());
 
 		BaseRestDTO<Resource> result = null;
-		Resource resource = getResourcePersistenceService().getResourceById(id);
+		Resource resource = getResourcePersistenceService().getResourceById(id, principal);
 		if (resource != null) {
 			logger.debug("resource found: {}", resource);
 
-			result = createRestDTO(id, resource);
+			result = createRestDTO(id, resource, principal);
 		}
 
 		logger.debug("result: {}", result);
@@ -60,39 +63,40 @@ public abstract class BaseResourceRestController<Resource> {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-	public BaseRestDTO<Resource> putResource(@PathVariable String id, @RequestBody Resource value) {
+	public BaseRestDTO<Resource> putResource(@PathVariable String id, @RequestBody Resource value, Principal principal) {
 		logger.debug("PUT /{} {} ", id, value);
 
 		BaseRestDTO<Resource> result = null;
 		if (id != null && value != null) {
-			Resource resource = getResourcePersistenceService().updateResource(id, value);
-			result = createRestDTO(id, resource);
+			Resource resource = getResourcePersistenceService().updateResource(id, value, principal);
+			result = createRestDTO(id, resource, principal);
 		}
 
 		return result;
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.POST)
-	public BaseRestDTO<Resource> updateSessionInfo(@PathVariable String id, @RequestBody Resource value) {
+	public BaseRestDTO<Resource> updateSessionInfo(@PathVariable String id, @RequestBody Resource value,
+			Principal principal) {
 		logger.debug("POST /{} {} ", id, value);
 
 		BaseRestDTO<Resource> result = null;
 		if (id != null && value != null) {
-			Resource resource = getResourcePersistenceService().insertResource(id, value);
-			result = createRestDTO(id, resource);
+			Resource resource = getResourcePersistenceService().insertResource(id, value, principal);
+			result = createRestDTO(id, resource, principal);
 		}
 
 		return result;
 	}
 
 	@SuppressWarnings("unchecked")
-	private BaseRestDTO<Resource> createRestDTO(String id, Resource resource) {
+	private BaseRestDTO<Resource> createRestDTO(String id, Resource resource, Principal principal) {
 		BaseRestDTO<Resource> result;
 		result = new BaseRestDTO<Resource>(resource);
 
 		// add self link
 		BaseResourceRestController<Resource> controller = methodOn(this.getClass());
-		BaseRestDTO<Resource> method = controller.getResource(id);
+		BaseRestDTO<Resource> method = controller.getResource(id, principal);
 		ControllerLinkBuilder linkBuilder = linkTo(method);
 		result.add(linkBuilder.withSelfRel());
 		// add external links (from controller implementation)
